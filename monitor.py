@@ -330,6 +330,8 @@ def main() -> None:
 
     failures = 0
     error_reported = False
+    startup_reported = False
+    last_report = None
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
     launch = {"headless": HEADLESS, "args": ["--disable-dev-shm-usage", "--no-sandbox"]}
     if CHROMIUM_PATH:
@@ -353,6 +355,36 @@ def main() -> None:
                     do_check(page, debug=args.debug)
                     failures = 0
                     error_reported = False
+                    # Report startup only after the first successful live calendar check.
+                    # The timer advances only after a successful notification.
+                    if not args.once:
+                        now = time.monotonic()
+                        if not startup_reported:
+                            try:
+                                notify(
+                                    "✅ IND Utrecht Monitor запущено!\n"
+                                    "🔎 Першу перевірку календаря виконано успішно.\n"
+                                    f"📅 Шукаю дати раніше {CUTOFF.strftime('%d.%m.%Y')}.\n"
+                                    f"⏱ Пауза між перевірками: {INTERVAL_SECONDS} с.\n"
+                                    "📊 Звіт про роботу кожні 6 годин."
+                                )
+                                startup_reported = True
+                                last_report = now
+                                LOG.info("Startup Telegram notification sent")
+                            except Exception:
+                                LOG.exception("Could not send startup Telegram notification")
+                        elif last_report is not None and now - last_report >= 6 * 60 * 60:
+                            try:
+                                notify(
+                                    "💚 IND Utrecht Monitor працює.\n"
+                                    "✅ Остання перевірка календаря успішна.\n"
+                                    f"🔎 Шукаю вільні дати раніше {CUTOFF.strftime('%d.%m.%Y')}.\n"
+                                    f"⏱ Пауза між перевірками: {INTERVAL_SECONDS} с."
+                                )
+                                last_report = now
+                                LOG.info("Six-hour Telegram heartbeat sent")
+                            except Exception:
+                                LOG.exception("Could not send six-hour Telegram heartbeat")
                     if args.network_debug:
                         (STATE_DIR / "debug_network.json").write_text(
                             json.dumps(page._ind_network_log, ensure_ascii=False, indent=2), encoding="utf-8")
