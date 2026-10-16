@@ -1,0 +1,21 @@
+IND Utrecht Monitor – 16.10.2026
+
+1) In GitHub repository Evaletik/ind-utrecht-monitor open "uploading an existing file".
+2) Unzip this ZIP on PC and upload the FILES inside (monitor.py, calendar_probe.js, requirements.txt, Dockerfile, README.md, .gitignore).
+3) "Commit changes". Never upload your .env (Telegram token).
+4) On Render -> Background Worker -> Git Provider -> Evaletik/ind-utrecht-monitor.
+5) Runtime: Docker. Dockerfile path: ./Dockerfile. Start command is in Dockerfile.
+6) Use a paid worker plan (Starter or available).
+7) Environment variables on Render:
+TELEGRAM_BOT_TOKEN = <your bot token>
+TELEGRAM_CHAT_ID = 5108112045
+IND_URL = https://oap.ind.nl/nl/oap/en/#/OEK
+BEFORE_DATE = 2026-11-19
+TARGET_YEAR = 2026
+TARGET_MONTH = 11
+HEADLESS = true
+CHECK_INTERVAL_SECONDS = 60
+8) Deploy, open Logs. Expect Loket selected, number of persons = 1, Calendar 2026-11.
+9) Never stop your passport-bot, and do not cancel your existing IND booking.
+
+Note: Read-only number field bug has been fixed in this upload. Bot has no booking action.
